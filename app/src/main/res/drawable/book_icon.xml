@@ -1,0 +1,26 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+
+    <!-- 背景圓角方塊：保持原本大小位置 -->
+    <path
+        android:fillColor="#76B9F6"
+        android:pathData="M40,20h120a20,20 0 0 1 20,20v120a20,20 0 0 1 -20,20h-120a20,20 0 0 1 -20,-20v-120a20,20 0 0 1 20,-20z" />
+
+    <!-- 書本外框（原本：70 → 往左移到 60） -->
+    <path
+        android:strokeWidth="10"
+        android:strokeColor="#FFFFFF"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M60,55h65a15,15 0 0 1 15,15v70h-80z" />
+
+    <!-- 書底線（原本：70 → 往左移到 60） -->
+    <path
+        android:strokeWidth="10"
+        android:strokeColor="#FFFFFF"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M60,140a20,20 0 0 1 20,-20h60" />
+
+</vector>
