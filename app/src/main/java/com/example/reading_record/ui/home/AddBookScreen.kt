@@ -1,6 +1,7 @@
 package com.example.reading_record.ui.home
 
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -16,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -26,6 +28,8 @@ import com.example.reading_record.R
 @Composable
 fun AddBookScreen(navController: NavController) {
 
+    val context = LocalContext.current
+
     var title by remember { mutableStateOf("") }
     var author by remember { mutableStateOf("") }
     var status by remember { mutableStateOf("想讀") }
@@ -35,7 +39,6 @@ fun AddBookScreen(navController: NavController) {
         contract = ActivityResultContracts.GetContent()
     ) { uri -> imageUri = uri }
 
-    // ★ TextField Colors
     val textFieldColors = OutlinedTextFieldDefaults.colors(
         focusedContainerColor = Color(0xFF3A3535),
         unfocusedContainerColor = Color(0xFF3A3535),
@@ -55,7 +58,6 @@ fun AddBookScreen(navController: NavController) {
             .padding(28.dp)
     ) {
 
-        // ⭐ 標題（置中）
         Text(
             text = "新增書籍",
             style = MaterialTheme.typography.headlineMedium,
@@ -65,7 +67,6 @@ fun AddBookScreen(navController: NavController) {
 
         Spacer(Modifier.height(24.dp))
 
-        // ⭐ 圖片區域置中
         Box(
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
@@ -96,9 +97,7 @@ fun AddBookScreen(navController: NavController) {
 
         Spacer(Modifier.height(28.dp))
 
-        // ⭐ 書名
         Text("書名", color = Color.White, fontWeight = FontWeight.Bold)
-        // ✅ 間距增加
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(
             value = title,
@@ -110,9 +109,7 @@ fun AddBookScreen(navController: NavController) {
 
         Spacer(Modifier.height(20.dp))
 
-        // ⭐ 作者
         Text("作者", color = Color.White, fontWeight = FontWeight.Bold)
-        // ✅ 間距增加
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(
             value = author,
@@ -124,12 +121,10 @@ fun AddBookScreen(navController: NavController) {
 
         Spacer(Modifier.height(28.dp))
 
-        // ⭐ 狀態
         Text("狀態", color = Color.White, fontWeight = FontWeight.Bold)
 
         Spacer(Modifier.height(8.dp))
 
-        // 狀態按鈕列
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -159,9 +154,15 @@ fun AddBookScreen(navController: NavController) {
 
         Spacer(Modifier.height(32.dp))
 
-        // ⭐ 儲存按鈕
+        // 儲存按鈕
         Button(
-            onClick = { navController.popBackStack() },
+            onClick = {
+                if (title.isBlank() || author.isBlank() || imageUri == null) {
+                    Toast.makeText(context, "請填寫書名、作者並上傳圖片", Toast.LENGTH_SHORT).show()
+                } else {
+                    navController.popBackStack()
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(58.dp),
@@ -173,5 +174,27 @@ fun AddBookScreen(navController: NavController) {
         ) {
             Text("儲存書籍", fontWeight = FontWeight.Bold)
         }
+
+        Spacer(Modifier.height(16.dp))
+
+        // ⭐ 修正 3：把刪除按鈕加回來了
+        OutlinedButton(
+            onClick = {
+                // 這裡可以加入刪除邏輯，或者直接返回上一頁
+                navController.popBackStack()
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(58.dp),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = Color(0xFFFF5555) // 紅色文字
+            ),
+            border = BorderStroke(1.dp, Color(0xFFFF5555)),
+            shape = RoundedCornerShape(18.dp)
+        ) {
+            Text("刪除書籍", fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(Modifier.height(16.dp)) // 底部留白
     }
 }

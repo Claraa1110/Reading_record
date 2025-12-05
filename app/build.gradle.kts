@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp) // ⭐ 啟用 KSP
 }
 
 android {
@@ -43,25 +44,23 @@ android {
 }
 
 dependencies {
-
-    // --- Android 基本套件 ---
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
-
-    // --- Navigation ---
     implementation("androidx.navigation:navigation-compose:2.7.5")
-
-    // --- Coil：圖片載入（必要！不然不能顯示上傳圖片）---
     implementation("io.coil-kt:coil-compose:2.4.0")
-
-    // --- Icons（你的畫面會用到）---
     implementation("androidx.compose.material:material-icons-extended:1.6.0")
+
+    // ⭐ Room 資料庫
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -1,14 +1,15 @@
 package com.example.reading_record.ui.home
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape // ⭐ 記得加入這個 import
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -17,64 +18,64 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.reading_record.R
 import com.example.reading_record.navigation.Screen
+import com.example.reading_record.viewmodel.UserViewModel
+import com.example.reading_record.viewmodel.BookViewModel
 
 // 模擬書籍資料結構
 data class Book(val id: Int, val title: String)
 
-// 模擬書籍列表
-val mockBooks = listOf(
-    Book(1, "書本 A"),
-    Book(2, "書本 B"),
-    Book(3, "書本 C"),
-    Book(4, "書本 D"),
-    Book(5, "書本 E")
-)
+// ⭐ 修正 1：書櫃一開始要是空的
+val mockBooks = listOf<Book>()
 
 @Composable
-fun HomeScreen(navController: NavController) {
+fun HomeScreen(
+    navController: NavController,
+    userViewModel: UserViewModel,
+    bookViewModel: BookViewModel
+) {
 
     val darkBackground = Color(0xFF1E1B1B)
     val textWhite = Color.White
     val categoryHeaderColor = Color.White
 
-    // ⭐ 修正：Home頁面現在只負責內容，Scaffold由AppNav提供
     Scaffold(
-        containerColor = darkBackground,
-        // ❌ 移除 bottomBar = { BottomNavBar(navController = navController) }
-        // 避免重複顯示導航列
+        containerColor = darkBackground
     ) { paddingValues ->
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                // ⭐ 傳遞由 AppNav Scaffold 提供的內邊距
                 .padding(paddingValues)
         ) {
 
-            // ⭐ 頂部欄：用戶頭像和標題
             TopBar(textWhite = textWhite)
 
-            // ⭐ 滾動內容區域
-            Column(modifier = Modifier.fillMaxSize()) {
-                BookCategories(
-                    title = "正在閱讀",
-                    books = mockBooks,
-                    categoryHeaderColor = categoryHeaderColor
-                )
-
-                BookCategories(
-                    title = "已讀",
-                    books = mockBooks,
-                    categoryHeaderColor = categoryHeaderColor
-                )
-
-                BookCategories(
-                    title = "未來清單",
-                    books = mockBooks,
-                    categoryHeaderColor = categoryHeaderColor
-                )
+            // 如果書櫃是空的，可以顯示一個提示文字，或是保持空白
+            if (mockBooks.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("目前沒有書籍", color = Color.Gray)
+                }
+            } else {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    BookCategories(
+                        title = "正在閱讀",
+                        books = mockBooks,
+                        categoryHeaderColor = categoryHeaderColor
+                    )
+                    BookCategories(
+                        title = "已讀",
+                        books = mockBooks,
+                        categoryHeaderColor = categoryHeaderColor
+                    )
+                    BookCategories(
+                        title = "未來清單",
+                        books = mockBooks,
+                        categoryHeaderColor = categoryHeaderColor
+                    )
+                }
             }
         }
     }
@@ -139,9 +140,12 @@ fun BookCoverItem(book: Book) {
     )
 }
 
-// ⭐ 底部導航欄定義：此函式必須保持在此處或移至獨立檔案，以便 AppNav 呼叫
 @Composable
 fun BottomNavBar(navController: NavController) {
+
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
     NavigationBar(
         containerColor = Color(0xFFF0F0F0),
         contentColor = Color.Black,
@@ -149,11 +153,13 @@ fun BottomNavBar(navController: NavController) {
     ) {
         // 1. 書櫃
         NavigationBarItem(
-            selected = true,
+            selected = currentRoute == Screen.Home.route,
             onClick = {
-                navController.navigate(Screen.Home.route) {
-                    popUpTo(Screen.Home.route) { inclusive = true }
-                    launchSingleTop = true
+                if (currentRoute != Screen.Home.route) {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
                 }
             },
             icon = {
@@ -163,12 +169,7 @@ fun BottomNavBar(navController: NavController) {
                     modifier = Modifier.size(30.dp)
                 )
             },
-            label = {
-                Text(
-                    "書櫃",
-                    fontSize = 14.sp
-                )
-            },
+            label = { Text("書櫃", fontSize = 14.sp) },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = Color(0xFF1E1B1B),
                 selectedTextColor = Color(0xFF1E1B1B),
@@ -180,15 +181,14 @@ fun BottomNavBar(navController: NavController) {
 
         // 2. 新增 (中間藍色圓形按鈕)
         Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight(),
+            modifier = Modifier.weight(1f).fillMaxHeight(),
             contentAlignment = Alignment.Center
         ) {
             FloatingActionButton(
                 onClick = { navController.navigate(Screen.AddBook.route) },
                 containerColor = Color(0xFF6BB7FF),
-                modifier = Modifier.size(65.dp)
+                modifier = Modifier.size(65.dp),
+                shape = CircleShape // ⭐ 修正 2：強制設定為圓形
             ) {
                 Icon(
                     Icons.Filled.Add,
@@ -201,8 +201,15 @@ fun BottomNavBar(navController: NavController) {
 
         // 3. 個人
         NavigationBarItem(
-            selected = false,
-            onClick = { navController.navigate(Screen.Profile.route) },
+            selected = currentRoute == Screen.Profile.route,
+            onClick = {
+                if (currentRoute != Screen.Profile.route) {
+                    navController.navigate(Screen.Profile.route) {
+                        popUpTo(Screen.Home.route)
+                        launchSingleTop = true
+                    }
+                }
+            },
             icon = {
                 Icon(
                     painterResource(id = R.drawable.ic_person_outline),
@@ -210,12 +217,7 @@ fun BottomNavBar(navController: NavController) {
                     modifier = Modifier.size(30.dp)
                 )
             },
-            label = {
-                Text(
-                    "個人",
-                    fontSize = 14.sp
-                )
-            },
+            label = { Text("個人", fontSize = 14.sp) },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = Color(0xFF1E1B1B),
                 selectedTextColor = Color(0xFF1E1B1B),
